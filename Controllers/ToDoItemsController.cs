@@ -39,6 +39,15 @@ namespace ToDoManagerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<ToDoItem>> CreateToDoItem(ToDoItem toDoItem)
         {
+            // Assign Id = (current max Id) + 1 to ensure a unique sequential Id
+            // Use DefaultIfEmpty(0) so MaxAsync returns 0 when there are no rows yet.
+            var maxId = (await _context.ToDoItems
+                .OrderByDescending(i => i.Id)
+                .Select(i => (long?)i.Id)
+                .FirstOrDefaultAsync()) ?? 0L;
+
+            toDoItem.Id = maxId + 1;
+
             _context.ToDoItems.Add(toDoItem);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetToDoItem), new { id = toDoItem.Id }, toDoItem);
